@@ -1,0 +1,23 @@
+{
+  "name": "encurtador",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andrepatricio/encurtador.git"
+  },
+  "author": "André Patricio",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/andrepatricio/encurtador/issues"
+  },
+  "homepage": "https://github.com/andrepatricio/encurtador#readme",
+  "dependencies": {
+    "express": "^4.15.2"
+  }
+}
