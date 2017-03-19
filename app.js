@@ -6,10 +6,18 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get('/urls/:id', function(request, response){
-    //recuperar url
-    //resposta:
-    //response.location('');
-    //response.status(301).end();
+	var urlId = request.params.id;
+	//var query = { urls: { $elemMatch: { id: urlId } } };
+	var query = {'urls.id': urlId};
+	var projection = {'urls.$': 1};
+	mongo.find('users', query, projection, function(err, result){
+		if(err){
+			response.status(500).end();
+		}
+		var urlDestino = result[0].urls[0].url;
+		console.log(urlDestino);
+		response.redirect(301, urlDestino);
+	});
 });
 
 app.post('/users', function(request, response){
@@ -19,16 +27,16 @@ app.post('/users', function(request, response){
 		id : body.id
 	}
 
-	mongo.find('users', user, function(err, docs){
+	mongo.find('users', user, {}, function(err, docs){
 		if(err){
-			response.status(500).send('Erro interno');
+			response.status(500).end();
 		}
 		if(docs.length > 0){
 			response.sendStatus(409);
 		}
 		mongo.save('users', user, function(err, result){
 	        if(err){
-	            response.status(500).send('Erro interno');
+	            response.status(500).end();
 	        }
 	        response.status(201).json(user);
 	    });
@@ -39,25 +47,51 @@ app.post('/users/:userId/urls', function(request, response){
 
 	mongo.findAndModify('counters', {_id: 'urlsId'}, {$inc: {seq : 1}}, function(err, result){
 		if(err){
-			response.status(500).send('Erro interno');
+			response.status(500).end();
 		}
 		var body = request.body;
 		var url = {};
-		url.id = result.value.seq;
+		url.id = result.value.seq.toString();
 		url.hints = 0;
 		url.url = request.body.url;
-		url.shortUrl = 'http://nariz.ptr/ASDfeiBa'
+		url.shortUrl = 'http://and.re/'
 
 		var criteria = {id: request.params.userId};
 		var update = { $push: {urls : url}}
 
 		mongo.update('users', criteria, update, function(err, result){
 			if(err){
-				response.status(500).send('Erro interno');
+				response.status(500).end();
 			}
 			response.status(201).json(url);
 		});
 	});
+});
+
+app.delete('/users/:userId', function(request, response){
+	var query = {id: request.params.userId};
+	mongo.remove('users', query, function(err, result){
+		if(err){
+			response.status(500).end();
+		}
+		console.log(result);
+		response.status(200).end();
+	});
+});
+
+app.delete('/urls/:urlId', function(request, response){
+	var urlId = request.params.urlId;
+	var query = {
+		'urls.id': urlId,
+		
+	}
+	mongo.findAndModify('users', query, {}, function(err, result){
+		console.log(result);
+	});
+});
+
+app.get('/teste', function(req, res){
+	res.redirect(301, 'https://www.google.de/?q=:query(Nyan+Cat)');
 });
 
 app.listen(3000, function(){
