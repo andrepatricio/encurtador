@@ -26,7 +26,29 @@ var _save = function(collectionName, obj, callback){
 	});
 };
 
+var _update = function(collectionName, criteria, update, callback){
+	MongoClient.connect(_url, function(err, db){
+		var collection = db.collection(collectionName);
+		collection.update(criteria, update, function(err, result){
+			callback(err, result);
+			db.close();
+		});
+	});
+}
+
+var _findAndModify = function(collectionName, criteria, update, callback){
+	MongoClient.connect(_url, function(err, db){
+		var collection = db.collection(collectionName);
+		collection.findAndModify(criteria, [],  update, {}, function(err, result){
+			callback(err, result);
+			db.close();
+		});
+	});
+}
+
 module.exports = {
 	find : _find,
-	save : _save
+	save : _save,
+	update: _update,
+	findAndModify: _findAndModify 
 }
