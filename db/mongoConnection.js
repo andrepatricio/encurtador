@@ -17,20 +17,12 @@ var _find = function(collectionName, query, callback){
 };
 
 var _save = function(collectionName, obj, callback){
-	
 	MongoClient.connect(_url, function(err, db){
 		var collection = db.collection(collectionName);
 		collection.insertOne(obj, function(err, result){
 			callback(err, result);
 			db.close();
 		});
-	});
-};
-
-var _getNextSequence = function(counterName, callback){
-	MongoClient.connect(_url, function(err, db){
-		var counter = db.counter(counterName);
-		console.log(counter);
 	});
 };
 
