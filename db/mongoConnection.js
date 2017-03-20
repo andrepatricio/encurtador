@@ -16,6 +16,16 @@ var _find = function(collectionName, query, projection, callback){
 	});
 };
 
+var _findOne = function(collectionName, query, projection, callback){	
+	MongoClient.connect(_url, function(err, db){
+		var collection = db.collection(collectionName);
+		collection.findOne(query, projection, function(err, docs) {
+			callback(err, docs);
+			db.close();
+		});
+	});
+};
+
 var _save = function(collectionName, obj, callback){
 	MongoClient.connect(_url, function(err, db){
 		var collection = db.collection(collectionName);
@@ -58,6 +68,7 @@ var _findAndModify = function(collectionName, criteria, update, callback){
 
 module.exports = {
 	find : _find,
+	findOne: _findOne,
 	save : _save,
 	remove: _remove,
 	update: _update,

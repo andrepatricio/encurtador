@@ -7,7 +7,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get('/urls/:id', function(request, response){
 	var urlId = request.params.id;
-	//var query = { urls: { $elemMatch: { id: urlId } } };
 	var query = {'urls.id': urlId};
 	var projection = {'urls.$': 1};
 	mongo.find('users', query, projection, function(err, result){
@@ -20,6 +19,38 @@ app.get('/urls/:id', function(request, response){
 	});
 });
 
+app.get('/stats/:id', function(request, response){
+	var query = {'urls.id': request.params.id};
+	mongo.findOne('users', query, {'urls.$': 1}, function(err, result){
+		if(err){
+			response.status(500).end();
+		}
+		response.status(200).json(result.urls.pop());
+	});
+});
+
+app.get('/stats', function(request, response){
+
+});
+
+app.get('/users/:userId/stats', function(request, response){
+	var query = {'id': request.params.userId};
+	mongo.findOne('users', query, {}, function(err, result){
+		if(err){
+			response.status(500).end();
+		}
+		var urls = result.urls;
+		var stats = {};
+		stats.urlCount = urls.length;
+		stats.hints = {};
+		stats.topUrls = urls.sort(function(a, b){
+			return a.hints < b.hints ? -1 : 1;
+		});
+		console.log(stats);
+		response.status(200).end();
+	});
+});
+
 app.post('/users', function(request, response){
 	var body = request.body;
 
@@ -27,14 +58,14 @@ app.post('/users', function(request, response){
 		id : body.id
 	}
 
-	mongo.find('users', user, {}, function(err, docs){
+	mongo.find('users', user, {}, function(err, result){
 		if(err){
 			response.status(500).end();
 		}
-		if(docs.length > 0){
+		if(result.length > 0){
 			response.sendStatus(409);
 		}
-		mongo.save('users', user, function(err, result){
+		mongo.save('users', user, function(err, saveResult){
 	        if(err){
 	            response.status(500).end();
 	        }
@@ -52,14 +83,14 @@ app.post('/users/:userId/urls', function(request, response){
 		var body = request.body;
 		var url = {};
 		url.id = result.value.seq.toString();
-		url.hints = 0;
+		url.hints = 13;
 		url.url = request.body.url;
 		url.shortUrl = 'http://and.re/'
 
 		var criteria = {id: request.params.userId};
 		var update = { $push: {urls : url}}
 
-		mongo.update('users', criteria, update, function(err, result){
+		mongo.update('users', criteria, update, function(err, updateResult){
 			if(err){
 				response.status(500).end();
 			}
@@ -74,24 +105,22 @@ app.delete('/users/:userId', function(request, response){
 		if(err){
 			response.status(500).end();
 		}
-		console.log(result);
 		response.status(200).end();
 	});
 });
 
 app.delete('/urls/:urlId', function(request, response){
-	var urlId = request.params.urlId;
-	var query = {
-		'urls.id': urlId,
-		
-	}
-	mongo.findAndModify('users', query, {}, function(err, result){
-		console.log(result);
+	mongo.findOne('users', {'urls.id': request.params.urlId}, {'id' : 1, 'urls.$': 1}, function(err, result){
+		var query = {'id': result.id};
+		var update = {$pull : {'urls': result.urls[0]}};
+		mongo.update('users', query, update, function(err, updateResult){
+			console.log(result);
+			if(err){
+				response.status(500).end();
+			}
+			response.status(200).end();
+		})
 	});
-});
-
-app.get('/teste', function(req, res){
-	res.redirect(301, 'https://www.google.de/?q=:query(Nyan+Cat)');
 });
 
 app.listen(3000, function(){
