@@ -5,6 +5,7 @@ Descrição:
 
 Dependencias: 
  - Nodejs v5.12.0
+ - NPM v3.8.6
  - MongoDB v2.6.12
 
  Instruções para rodar:
@@ -16,5 +17,9 @@ Dependencias:
 - Inserir o contador que serve para gerar o id sequencial das urls:
     db.counters.insert({ "_id" : "urlsId", "seq" : 1 });
 
-- Entrar na pasta do projeto e rodar o arquivo app.js no node passando a url do banco como argumento comando:
+- Na pasta do projeto baixar as dependencias do npm com o seguinte comando:
+    npm install
+
+- Na pasta do projeto rodar o arquivo app.js no node passando a url do banco como argumento:
     node app.js <url-mongo>
+    Exemplo: node app.js mongodb://localhost:27017/encurtador_test
