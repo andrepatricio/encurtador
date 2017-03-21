@@ -10,13 +10,44 @@ app.get('/urls/:id', function(request, response){
 	//var query = { urls: { $elemMatch: { id: urlId } } };
 	var query = {'urls.id': urlId};
 	var projection = {'urls.$': 1};
-	mongo.find('users', query, projection, function(err, result){
+	mongo.findOne('users', query, projection, function(err, result){
 		if(err){
 			response.status(500).end();
 		}
-		var urlDestino = result[0].urls[0].url;
+		if(!result){
+			response.status(404).end();
+		}
+		console.log(result);
+		var urlDestino = result.urls[0].url;
 		console.log(urlDestino);
 		response.redirect(301, urlDestino);
+	});
+});
+
+app.get('/users/:userId/stats', function(request, response){
+	var query = {'id': request.params.userId};
+	mongo.findOne('users', query, {}, function(err, result){
+		if(err){
+			response.status(500).end();
+		}
+		if(!result){
+			response.status(404).end();
+		}
+		var stats = {};
+		var urls = result.urls;
+		stats.hits = urls.reduce(function(prev, current, index){
+			return index == 1 ? prev.hits + current.hits : prev + current.hits;
+		});
+		stats.countUrls = urls.length;
+		stats.topUrls = urls.sort(function(element1, element2){
+			if(element1.hits > element2.hits){
+				return -1;
+			} else {
+				return 1;
+			}
+			return 0;
+		});
+		response.status(200).json(stats);
 	});
 });
 
@@ -52,12 +83,12 @@ app.post('/users/:userId/urls', function(request, response){
 		var body = request.body;
 		var url = {};
 		url.id = result.value.seq.toString();
-		url.hints = 0;
+		url.hits = 0;
 		url.url = request.body.url;
 		url.shortUrl = 'http://and.re/'
 
 		var criteria = {id: request.params.userId};
-		var update = { $push: {urls : url}}
+		var update = {$push: {urls : url}}
 
 		mongo.update('users', criteria, update, function(err, result){
 			if(err){
@@ -83,7 +114,7 @@ app.delete('/urls/:urlId', function(request, response){
 	var urlId = request.params.urlId;
 	var query = {
 		'urls.id': urlId,
-		
+
 	}
 	mongo.findAndModify('users', query, {}, function(err, result){
 		console.log(result);
