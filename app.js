@@ -1,7 +1,8 @@
 var app = require('express')();
 var bodyParser = require('body-parser');
-var mongo = require('./db/mongoConnection.js');
-
+var mongoDriver = require('./db/mongoConnection.js');
+console.log(typeof process.argv[2]);
+var mongo = mongoDriver(process.argv[2]);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 

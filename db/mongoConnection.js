@@ -1,10 +1,19 @@
 var MongoClient = require('mongodb').MongoClient
   , assert = require('assert');
 
-var _urlTeste = 'mongodb://localhost:27017/encurtador_test';
-var _urlDesenv = 'mongodb://localhost:27017/encurtador';
+var _url = '';
 
-var _url = process.env.NODE_ENV == 'test' ? _urlTeste : _urlDesenv;
+module.exports = function(url){
+	_url = url;
+	return {
+		find : _find,
+		findOne: _findOne,
+		save : _save,
+		remove: _remove,
+		update: _update,
+		findAndModify: _findAndModify 
+	};
+}
 
 var _find = function(collectionName, query, projection, callback){	
 	MongoClient.connect(_url, function(err, db){
@@ -66,11 +75,3 @@ var _findAndModify = function(collectionName, criteria, update, callback){
 	});
 }
 
-module.exports = {
-	find : _find,
-	findOne: _findOne,
-	save : _save,
-	remove: _remove,
-	update: _update,
-	findAndModify: _findAndModify 
-}
